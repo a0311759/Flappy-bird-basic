@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Bird</title>
+<style>
+    canvas {
+        border: 1px solid black;
+        display: block;
+        margin: 0 auto;
+    }
+    #score {
+        text-align: center;
+        font-size: 24px;
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+<div id="score">Score: 0</div>
+<script>
+    // Initialize the canvas and context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Variables
+    let birdY = canvas.height / 2;
+    let velocity = 0;
+    let gravity = 0.05; // Decreased gravity value
+    let jump = -2;
+    let gap = 100;
+    let pipeWidth = 50;
+    let pipeSpeed = 1;
+    let pipeInterval = 150;
+    let pipes = [];
+    let distance = 0; // Track distance covered
+    let score = 0;
+
+    // Functions
+    function drawBird() {
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(50, birdY, 30, 30);
+    }
+
+    function drawPipe(x, height) {
+        ctx.fillStyle = 'green';
+        ctx.fillRect(x, 0, pipeWidth, height);
+        ctx.fillRect(x, height + gap, pipeWidth, canvas.height - height - gap);
+    }
+
+    function update() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw bird
+        drawBird();
+
+        // Update bird position
+        velocity += gravity;
+        birdY += velocity;
+        distance += pipeSpeed; // Increment distance covered
+
+        // Draw pipes
+        for (let i = 0; i < pipes.length; i++) {
+            drawPipe(pipes[i].x, pipes[i].height);
+            pipes[i].x -= pipeSpeed;
+
+            // Check collision
+            if (birdY < pipes[i].height || birdY > pipes[i].height + gap || pipes[i].x + pipeWidth < 80) {
+                if (pipes[i].x === 50) {
+                    alert('Game over! Score: ' + score);
+                    reset();
+                }
+            }
+        }
+
+        // Remove pipes that are off-screen
+        if (pipes.length > 0 && pipes[0].x + pipeWidth < 0) {
+            pipes.shift();
+            score++; // Increment score when passing a pipe
+        }
+
+        // Update scoreboard
+        document.getElementById('score').innerText = 'Score: ' + score;
+
+        // Generate new pipes
+        if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeInterval) {
+            let randomHeight = Math.floor(Math.random() * (canvas.height - gap));
+            pipes.push({ x: canvas.width, height: randomHeight });
+        }
+
+        // Request animation frame
+        requestAnimationFrame(update);
+    }
+
+    function reset() {
+        birdY = canvas.height / 2;
+        velocity = 0;
+        pipes = [];
+        distance = 0;
+        score = 0;
+        document.getElementById('score').innerText = 'Score: ' + score; // Reset scoreboard
+    }
+
+    // Event listeners
+    canvas.addEventListener('click', function () {
+        velocity = jump;
+    });
+
+    // Start the game loop
+    update();
+</script>
+</body>
+</html>
